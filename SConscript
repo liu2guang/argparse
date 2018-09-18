@@ -1,56 +1,69 @@
-# 
-# @File:   SConscript 
-# @Author: buildpkg.py 
-# @Date:   2018-09-19 00:16:09
+# -*- coding:utf-8 –*-
+# @File:   Sconscript
+# @Author: buildpkg.exe
+# @Date:   2018-09-19 18:07:00(The date the template was created)
 #
-# @LICENSE: {{license}}.
+# @LICENSE: https://github.com/rtpkgs/buildpkg/blob/master/LICENSE.
 #
 # Change Logs:
-# Date           Author       Notes
-# 2018-09-19     buildpkg.py  Generate the scons script automatically.
+# Date           Author         Notes 
+# 20xx-xx-xx     buildpkg.exe   auto create by buildpkg.exe. 
 
 import os
 from building import * 
 
-# get current dir path
+# Get current dir path
 cwd = GetCurrentDir()
 
-# init src and inc vars
+# Init inc_list and src_list vars
+inc = [] 
 src = []
-inc = []
 
-name    = "argparse"
-version = "v1.0.0"
+# debug info
+print(inc)
+print(src)
 
-# print debug info
-# print(name + '-' + version)
-# print('PKG_USING_' + name.upper()) 
+# Remove ignore src and 
+list_ignore_inc = []
+list_ignore_src = ["test_argparse.c"]
 
-# add to project 
-def make_pkg(f):
-    fs = os.listdir(f)
-    for f1 in fs:
-        tmp_path = os.path.join(f, f1)
+# --------------------------------------------------------------------------------
+#  user add ignore: 
+# --------------------------------------------------------------------------------
+list_ignore_inc += ['.git', 'example', 'doc', 'test'] 
+list_ignore_src += ['test.c', 'example.c'] 
 
-        if os.path.isdir(tmp_path):
-            make_pkg(tmp_path)
+print(list_ignore_inc)
+print(list_ignore_src)
 
-        else: 
+# Traverse package, add code and path to project 
+def traverse_package(f):
+    fs = os.listdir(f) 
+    for f1 in fs: 
+        tmp_path = os.path.join(f, f1) 
+        filename = os.path.basename(tmp_path)
+
+        if os.path.isdir(tmp_path): # dir
+            if not filename in list_ignore_inc: 
+                print("DIR: " + filename)
+                inc.append(f)
+                traverse_package(tmp_path)
+        else: # file
             suffix = os.path.splitext(tmp_path)[1]
-
-            if suffix   == '.c':
+            if suffix   == '.c' and not filename in list_ignore_src:
+                #print("FILE: " + filename)
                 src.append(tmp_path)
             elif suffix == '.h':
                 inc.append(f)
             
-make_pkg(cwd) 
+traverse_package(cwd) 
 
-# add group to IDE project
-objs = DefineGroup(name + '-' + version, src, depend = ['PKG_USING_' + name.upper()], CPPPATH = inc)
+# Add group to IDE project
+objs = DefineGroup('argparse-v1.0.0', src, depend = ['PKG_USING_ARGPARSE'], CPPPATH = inc)
 
-# traversal subscript
+# Traversal subscript
 list = os.listdir(cwd)
-if GetDepend('PKG_USING_' + name.upper()):
+if GetDepend(['PKG_USING_ARGPARSE']):
     for d in list:
         path = os.path.join(cwd, d)
         if os.path.isfile(os.path.join(path, 'SConscript')):
